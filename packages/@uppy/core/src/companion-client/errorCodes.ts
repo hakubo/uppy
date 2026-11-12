@@ -26,6 +26,7 @@ const companionErrorLocaleKeys = {
   S3_READ_ONLY_SESSION: 's3ReadOnlySession',
   S3_REQUEST_FAILED: 's3RequestFailed',
   S3_SELECTED_IN_OTHER_SESSION: 's3SelectedInOtherSession',
+  URL_CANNOT_CONNECT: 'urlCannotConnect',
   WEBDAV_CANNOT_CONNECT: 'webdavCannotConnect',
 } as const satisfies Record<string, LocaleKey>
 

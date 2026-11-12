@@ -2,9 +2,31 @@ import type { Request, Response } from 'express'
 import express from 'express'
 import { downloadURL } from '../download.js'
 import { getURLMeta, validateURL } from '../helpers/request.js'
+import { isRecord } from '../helpers/type-guards.js'
 import { startDownUpload } from '../helpers/upload.js'
 import logger from '../logger.js'
 import { respondWithError } from '../provider/error.js'
+import { userError } from '../provider/errorCodes.js'
+
+// Connection errors that mean the URL's server can't be reached (no such host,
+// nothing listening, no route): the user can fix them, unlike a failure here.
+const CANNOT_CONNECT_CODES = new Set([
+  'ECONNREFUSED',
+  'EHOSTUNREACH',
+  'ENETUNREACH',
+  'ENOTFOUND',
+])
+
+/** A connection error as the user-facing `URL_CANNOT_CONNECT`; others as they are. */
+function toUserError(err: unknown): unknown {
+  const code = isRecord(err) ? err['code'] : undefined
+  return typeof code === 'string' && CANNOT_CONNECT_CODES.has(code)
+    ? userError(
+        'URL_CANNOT_CONNECT',
+        'Cannot connect to the server hosting this file',
+      )
+    : err
+}
 
 /**
  * Fetch the size and content type of a URL.
@@ -27,7 +49,7 @@ const meta = async (req: Request, res: Response): Promise<void> => {
     res.json(urlMeta)
   } catch (err) {
     logger.error(err, 'controller.url.meta.error', req.id)
-    if (respondWithError(err, res)) return
+    if (respondWithError(toUserError(err), res)) return
     res.status(500).json({ message: 'failed to fetch URL metadata' })
   }
 }
@@ -54,7 +76,7 @@ const get = async (req: Request, res: Response): Promise<void> => {
     await startDownUpload({ req, res, download, getSize: undefined })
   } catch (err) {
     logger.error(err, 'controller.url.error', req.id)
-    if (respondWithError(err, res)) return
+    if (respondWithError(toUserError(err), res)) return
     res.status(500).json({ message: 'failed to fetch URL' })
   }
 }

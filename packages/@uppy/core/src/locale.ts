@@ -92,6 +92,7 @@ export default {
     s3RequestFailed: 'The storage request failed',
     s3SelectedInOtherSession:
       'This file was selected in another storage session. Reconnect and select it again',
+    urlCannotConnect: 'Cannot connect to the server hosting this file',
     webdavCannotConnect: 'Cannot connect to server',
   },
 }

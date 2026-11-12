@@ -309,6 +309,7 @@ en_US.strings = {
     '0': 'Upload +%{smart_count} file',
     '1': 'Upload +%{smart_count} files',
   },
+  urlCannotConnect: 'Cannot connect to the server hosting this file',
   webdavCannotConnect: 'Cannot connect to server',
   xFilesSelected: {
     '0': '%{smart_count} file selected',
