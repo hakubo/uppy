@@ -5,6 +5,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, test } from 'vitest'
 import { downloadURL } from '../dist/server/download.js'
 import {
   getProtectedGot,
+  getURLMeta,
   openProtectedStream,
   UPSTREAM_TIMEOUTS,
 } from '../dist/server/helpers/request.js'
@@ -172,5 +173,37 @@ describe('downloadURL', () => {
     for await (const chunk of stream) chunks.push(Buffer.from(chunk))
     expect(Buffer.concat(chunks).toString()).toBe('hello')
     expect(size).toBe(5)
+  })
+
+  test('downloads from a host that refuses to answer with JSON', async () => {
+    handler = (req, res) => {
+      if (req.headers.accept?.includes('application/json')) {
+        res.writeHead(406)
+        res.end()
+        return
+      }
+      res.writeHead(200, {
+        'content-type': 'image/jpeg',
+        'content-length': '5',
+      })
+      res.end('hello')
+    }
+    const { stream, size } = await downloadURL(`${baseUrl}/image.jpg`, true)
+    const chunks: Buffer[] = []
+    for await (const chunk of stream) chunks.push(Buffer.from(chunk))
+    expect(Buffer.concat(chunks).toString()).toBe('hello')
+    expect(size).toBe(5)
+  })
+})
+
+describe('getURLMeta', () => {
+  test('a refused request keeps the status the server answered', async () => {
+    handler = (_req, res) => {
+      res.writeHead(403)
+      res.end()
+    }
+    await expect(
+      getURLMeta(`${baseUrl}/private.jpg`, true),
+    ).rejects.toMatchObject({ name: 'HttpError', statusCode: 403 })
   })
 })

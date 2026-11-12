@@ -17,10 +17,13 @@ export const downloadURL = async (
   options: Record<string, unknown> = {},
 ): Promise<{ stream: Readable; size: number | undefined }> => {
   try {
-    const { stream, response } = await openProtectedStream(url, allowLocalIPs, {
-      responseType: 'json',
-      ...options,
-    })
+    // No `responseType: 'json'`: got would then send `Accept: application/json`,
+    // and some file hosts answer that with 406.
+    const { stream, response } = await openProtectedStream(
+      url,
+      allowLocalIPs,
+      options,
+    )
     // A 3xx reaches here only when there was no Location to follow: its body
     // is not the file either.
     if (response.statusCode >= 300) {

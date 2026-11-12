@@ -9,6 +9,7 @@ import * as contentDisposition from 'content-disposition'
 import got, { type Response } from 'got'
 import ipaddr from 'ipaddr.js'
 import validator from 'validator'
+import { HttpError } from './utils.js'
 
 export const FORBIDDEN_IP_ADDRESS = 'Forbidden IP address'
 
@@ -429,7 +430,10 @@ export async function getURLMeta(
   }
 
   if (urlMeta.statusCode >= 300) {
-    throw new Error(`URL server responded with status: ${urlMeta.statusCode}`)
+    throw new HttpError({
+      statusCode: urlMeta.statusCode,
+      responseJson: undefined,
+    })
   }
 
   const { name, size, type } = urlMeta
